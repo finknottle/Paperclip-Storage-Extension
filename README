@@ -1,0 +1,52 @@
+Paperclip::Storage::S3 extension
+===============
+This is an extension to the popular paperclip plugin.
+This is NOT the paperclip plugin itself. It needs the paperclip plugin to be installed in your vendor/plugins directory
+
+For information on the paperclip plugin itself, see the excellent tutorial on http://github.com/thoughtbot/paperclip
+
+What this extension does
+========================
+The paperclip plugin is great to add files to your existing model without requiring an additional model.
+The paperclip storage module has a module called S3 which allows you to store your uploaded files in your S3 account. The buckets can be defined in the configuration YAML file, typically called #{RAILS_ROOT}/config/amazon_s3.yml or #{RAILS_ROOT}/config/s3.yml.
+The configuration file looks like
+
+	development: 
+	  access_key_id: your_access_key
+	  secret_access_key: your_secret_key
+	  bucket: bucket_name_on_S3
+
+	production:
+	  access_key_id: your_access_key
+	  secret_access_key: your_secret_key
+	  bucket: bucket_name_on_S3
+
+The problem though is that when you are developing on your machine, or creating a test machine, but with the production environment, then you want to copy the db from your production machine, and play with the data. At this point, you usually want your files (typically images) to be available for your environment. But at the same time, you don't want to change the files in your production bucket when you change them in your development or test environment.
+
+This is where this extension comes in. The extension allows you to add two more configuration options to your YAML file. So that, the file then looks like 
+
+	development: 
+	  access_key_id: your_access_key
+	  secret_access_key: your_secret_key
+	  bucket: bucket_name_on_S3
+	  bucket_alt: alt_bucket_name
+	  testing: true
+
+	production:
+	  access_key_id: your_access_key
+	  secret_access_key: your_secret_key
+	  bucket: bucket_name_on_S3
+	  bucket_alt: alt_bucket_name
+	  testing: false
+	
+You can add the additional two options through a capistrano recipe or a chef recipe, based on your deployment mechanism.
+Thus, in your production environment, everything will work as before, all reads and writes will occur on the production bucket defined in the configuration bucket:
+
+However, in your test or dev environment, the reads will be done from the alt_bucket_name if it exists (production bucket), but the writes and deletes will be done from your bucket (dev bucket).
+
+
+Installation
+============
+Simply add this file to the #{RAILS_ROOT}/lib/ directory, and call it in the environment.rb file below the Rails Initializer block
+	require 'lib/paperclip_storage_ext'
+	
